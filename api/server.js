@@ -24,18 +24,29 @@ server.get("/api/posts/:id", (req, res) => {
     })
 });
 
-server.get("/api/posts/:id/comments", (req, res) => {
-    Posts.findCommentById(req.params.id).then((posts) => {
-        if (!posts) {
-            res.status(404).json({ message: "Girilen ID'li gönderi bulunamadı." });
-        }
-    }).catch((err) => {
-        Posts.findPostComments(req.params.post_id).then((comments) => {
-            if (!comments) {
-                res.status(500).json({ message: "Girilen ID'li gönderi bulunamadı." });
+server.get("/api/posts/:id/comments", async (req, res) => {
+    try {
+        let existPost = await Posts.findById(req.params.id);
+        if (!existPost) {
+                res.status(404).json({ message: "Girilen ID'li gönderi bulunamadı." });
+            } else {
+                let comments = await Posts.findPostComments(req.params.id);
+                res.status(200).json(comments);
             }
-        })
-    });
+} catch (error) {
+    res.status(500).json({ message: "Yorumlar bilgisi getirilemedi" });
+}
+    // Posts.findCommentById(req.params.id).then((posts) => {
+    //     if (!posts) {
+    //         res.status(404).json({ message: "Girilen ID'li gönderi bulunamadı." });
+    //     }
+    // }).catch((err) => {
+    //     Posts.findPostComments(req.params.post_id).then((comments) => {
+    //         if (!comments) {
+    //             res.status(500).json({ message: "Girilen ID'li gönderi bulunamadı." });
+    //         }
+    //     })
+    // });
 });
 //PUT
 server.put('/api/posts/:id', async (req, res) => {
