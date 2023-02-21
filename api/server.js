@@ -39,28 +39,23 @@ server.get("/api/posts/:id/comments", (req, res) => {
 });
 //PUT
 server.put('/api/posts/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { title, contents } = req.body;
-
-        const willBeUpdatedPost = await Posts.findById(id);
-        if (!willBeUpdatedPost) {
-            return res.status(404).json({ message: "Belirtilen ID'li gönderi bulunamadı" });
-        }
-
+    let existPost = await Posts.findById(req.params.id);
+    if(!existPost) {
+        res.status(404).json({ message: "Belirtilen ID'li gönderi bulunamadı" });
+    }else {
+        let { title, contents } = req.body;
         if (!title || !contents) {
-            return res.status(400).json({ message: "Lütfen gönderi için title ve contents sağlayın" });
+            res.status(400).json({ message: "Lütfen gönderi için title ve contents sağlayın" });
+        }else {
+            try {
+                let updatedPostId = await Posts.update(req.params.id,req.body);
+                let updatedPost = await Posts.findById(updatedPostId);
+                res.status(200).json(updatedPost);
+            }catch (err) {
+                console.log(err);
+            res.status(500).json({ message: "Gönderi bilgileri güncellenemedi" });
         }
-
-        willBeUpdatedPost.title = title;
-        willBeUpdatedPost.contents = contents;
-        let updatedPost = await willBeUpdatedPost.save();
-
-        res.status(200).json(updatedPost);
-        } 
-        catch (err) {
-            console.log(err);
-        res.status(500).json({ message: "Gönderi bilgileri güncellenemedi" });
+    }   
     }
 });
 
