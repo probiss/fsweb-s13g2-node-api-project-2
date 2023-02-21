@@ -5,25 +5,28 @@ const router = express.Router();
 
 
 //GET
-router.get("/",(req,res) => {
+router.get("/", (req, res) => {
     Posts.find().then((posts) => {
-        res.status(201).json(posts)
-    }).catch((err) =>{
-        res.status(500).json({message:"Gönderiler alınamadı"})
+        res.json(posts)
+    }).catch((err) => {
+        res.status(500).json({ message: "Gönderiler alınamadı" })
     });
 });
 
 //POST
-router.post("/",(req,res) => {
-    let post1 = req.body;
-    if(!post1.title || !post1.contents) {
-        res.status(400).json({ message: "Lütfen gönderi için bir title ve contents sağlayın" })
-    }else {
-        Posts.insert(post1).then((posts)=>{
-            res.status(201).json(posts);
-        }) .catch((err)=>{
+router.post("/", async (req, res) => {
+    const { title, contents } = req.body;
+    if (!title || !contents) {
+        res.status(400).json({ message: "Lütfen gönderi için bir title ve contents sağlayın" });
+    }
+    else {
+        try {
+            let {id} = await Posts.insert({title,contents});
+            let insetedPosts = await Posts.findById(id);
+            res.status(201).json(insetedPosts);
+        } catch (error) {
             res.status(500).json({message:"Veritabanına kaydedilirken bir hata oluştu"})
-        });
+        }
     }
 });
 

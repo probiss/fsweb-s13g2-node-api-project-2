@@ -38,21 +38,28 @@ server.get("/api/posts/:id/comments", (req, res) => {
     });
 });
 //PUT
-server.put("/api/posts/:id", async (req, res) => {
+server.put('/api/posts/:id', async (req, res) => {
     try {
-        let willBeUpdatedPost = await Posts.findById(req.params.id);
-        if (!willBeUpdatedPost) {
-            res.status(404).json({ message: "Belirtilen ID'li gönderi bulunamadı" });
-        } else {
-            if (!req.body.title || !req.body.contents) {
-                res.status(400).json({ message: "Lütfen gönderi için title ve contents sağlayın" });
-            } else {
-                let updatedPosts = await Posts.update(req.params.id, req.body);
+        const { id } = req.params;
+        const { title, contents } = req.body;
 
-                res.status(200).json(updatedPosts);
-            }
+        const willBeUpdatedPost = await Posts.findById(id);
+        if (!willBeUpdatedPost) {
+            return res.status(404).json({ message: "Belirtilen ID'li gönderi bulunamadı" });
         }
-    } catch (error) {
+
+        if (!title || !contents) {
+            return res.status(400).json({ message: "Lütfen gönderi için title ve contents sağlayın" });
+        }
+
+        willBeUpdatedPost.title = title;
+        willBeUpdatedPost.contents = contents;
+        let updatedPost = await willBeUpdatedPost.save();
+
+        res.status(200).json(updatedPost);
+        } 
+        catch (err) {
+            console.log(err);
         res.status(500).json({ message: "Gönderi bilgileri güncellenemedi" });
     }
 });
